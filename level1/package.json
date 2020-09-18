@@ -11,6 +11,7 @@
     "test:integration": "jest -c jest.integration.config.js --forceExit --verbose --detectOpenHandles",
     "init": "tsc --init",
     "build": "tsc",
+    "build:watch": "tsc -w",
     "start": "dist/index.js"
   },
   "devDependencies": {
