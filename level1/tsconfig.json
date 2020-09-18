@@ -12,7 +12,8 @@
 
     /* Comments are not useful in transpiled code if we have source maps in my sense **/
     "removeComments": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "baseUrl": "./src/"
   },
   "include": ["./src"],
   "exclude": ["node_modules", "dist"]

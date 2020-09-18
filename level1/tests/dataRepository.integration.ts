@@ -1,5 +1,9 @@
+import { DataRepository } from '../src/shopping/DataRepository';
+
 describe('repository integration test', () => {
-  it('empty test', () => {
-    throw new Error('TODO');
+  it('Read Input data ok', async () => {
+    const data = await new DataRepository().loadData();
+
+    expect(data).toEqual(require('../input'));
   });
 });
