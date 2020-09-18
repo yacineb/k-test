@@ -2,7 +2,7 @@
 
 **How to run**
 
-You'll need to run `npm i` on each subfolder and at the root repository level (to have typings and intellisence when you open vsoce at the repo level)
+You'll need to run `npm i` on each subfolder and at the root repository level (to have typings and intellisence when you open vscode at the repo level)
 
 Minimum required version is Node LTS (12), older versions are obsolete and no longer maintained.
 
