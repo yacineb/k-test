@@ -5,10 +5,10 @@ export async function main() {
   // computes billing and save it into destination file
 
   const repo = new DataRepository();
-  const { articles, carts } = await repo.loadData();
+  const { articles, carts, delivery_fees } = await repo.loadData();
 
   const computer = new BillingComputer();
-  const result = computer.compute(articles, carts);
+  const result = computer.compute(articles, carts, delivery_fees);
 
   await repo.saveBillingData(result);
 }

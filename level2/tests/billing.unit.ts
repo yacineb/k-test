@@ -30,6 +30,7 @@ describe('BillingComputer', () => {
           ],
         },
       ],
+      fees: [],
 
       expected: [
         {
@@ -57,7 +58,7 @@ describe('BillingComputer', () => {
           items: [],
         },
       ],
-
+      fees: [],
       expected: [
         {
           id: 1,
@@ -67,10 +68,10 @@ describe('BillingComputer', () => {
     },
   ];
 
-  testCases.forEach((testCase, index) => {
+  testCases.forEach(({ articles, carts, fees, expected }, index) => {
     it(`test compute case #${index}`, () => {
-      const result = new BillingComputer().compute(testCase.articles, testCase.carts);
-      expect(result).toEqual(testCase.expected);
+      const result = new BillingComputer().compute(articles, carts, fees);
+      expect(result).toEqual(expected);
     });
   });
 });
