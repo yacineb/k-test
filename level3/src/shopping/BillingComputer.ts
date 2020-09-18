@@ -3,6 +3,7 @@ import { Cart } from './Cart.entity';
 import { CartBilling } from './CartBilling.entity';
 import assert from 'assert';
 import { DeliveryFee } from './DeliveryFree.entity';
+import { Discount, DiscountType } from './Discount.entity';
 
 /**
  * Computes total price for each cart
@@ -11,19 +12,19 @@ export class BillingComputer {
   public compute(
     articles: ReadonlyArray<Article>,
     carts: ReadonlyArray<Cart>,
-    delivery_fee: ReadonlyArray<DeliveryFee>
+    delivery_fee: ReadonlyArray<DeliveryFee>,
+    discounts: ReadonlyArray<Discount>
   ): CartBilling[] {
     // maps article ids to prices, avoid later o(n) lookups when computing
-    const article2Price = new Map<number, number>();
-    for (const article of articles) {
-      article2Price.set(article.id, article.price);
-    }
+
+    const discountsLookup = this.getDiscountsLookup(discounts);
+    const articlesLookup = this.getArticlesLookup(articles);
 
     return carts.map((cart) => {
       let total = 0;
 
       for (const item of cart.items) {
-        const articlePrice = article2Price.get(item.article_id);
+        const articlePrice = articlesLookup(item.article_id);
 
         // defensive programming is always a good thing
         assert.ok(
@@ -55,4 +56,26 @@ export class BillingComputer {
 
     return totalNet + (applicationFee?.price || 0);
   };
+
+  private getDiscountsLookup(discounts: readonly Discount[]) {
+    const article2Discount = new Map<number, Discount>();
+    for (const discount of discounts) {
+      article2Discount.set(discount.article_id, discount);
+    }
+
+    return (articleId: number): Discount | undefined => {
+      return article2Discount.get(articleId);
+    };
+  }
+
+  private getArticlesLookup(articles: readonly Article[]) {
+    const article2Price = new Map<number, number>();
+    for (const article of articles) {
+      article2Price.set(article.id, article.price);
+    }
+
+    return (articleId: number): number | undefined => {
+      return article2Price.get(articleId);
+    };
+  }
 }

@@ -4,12 +4,18 @@ import { Article } from './Article.entity';
 import { Cart } from './Cart.entity';
 import { CartBilling } from './CartBilling.entity';
 import { DeliveryFee } from './DeliveryFree.entity';
+import { Discount } from './Discount.entity';
 
 /**
  * Retrieves carts and articles data from storage
  */
 export class DataRepository {
-  public async loadData(): Promise<{ articles: Article[]; carts: Cart[]; delivery_fees: DeliveryFee[] }> {
+  public async loadData(): Promise<{
+    articles: Article[];
+    carts: Cart[];
+    delivery_fees: DeliveryFee[];
+    discounts: Discount[];
+  }> {
     const data = await fs_prom.readFile(getInputFilePath(), 'utf-8');
     return JSON.parse(data);
   }
