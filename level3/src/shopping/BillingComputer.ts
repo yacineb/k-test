@@ -5,6 +5,7 @@ import assert from 'assert';
 import { DeliveryFee } from './DeliveryFree.entity';
 import { Discount, DiscountType } from './Discount.entity';
 
+type DiscountLookup = (articleid: number) => Discount | undefined;
 /**
  * Computes total price for each cart
  */
@@ -25,14 +26,8 @@ export class BillingComputer {
 
       for (const item of cart.items) {
         const articlePrice = articlesLookup(item.article_id);
-
-        // defensive programming is always a good thing
-        assert.ok(
-          typeof articlePrice === 'number' && !Number.isNaN(articlePrice) && articlePrice >= 0,
-          `article #${item.article_id} in cart #${cart.id} either not found in articles database or has wrong price data format`
-        );
-
-        total += articlePrice * item.quantity;
+        const discount = discountsLookup(item.article_id);
+        total += this.applyDiscount(articlePrice, discount) * item.quantity;
       }
 
       return {
@@ -54,10 +49,25 @@ export class BillingComputer {
         (totalNet < fee.eligible_transaction_volume.max_price || fee.eligible_transaction_volume.max_price === null) // null seems to be a convention for +Infinity
     );
 
-    return totalNet + (applicationFee?.price || 0);
+    return totalNet + (applicationFee?.price || 0.0);
   };
 
-  private getDiscountsLookup(discounts: readonly Discount[]) {
+  private readonly applyDiscount = (total: number, discount?: Discount): number => {
+    if (!discount) return total;
+
+    switch (discount.type) {
+      case DiscountType.amount:
+        return Math.max(total - discount.value, 0.0);
+      case DiscountType.percentage:
+        return Math.floor(total - (total * discount.value) / 100.0);
+      default: {
+        console.warn('Unknown discount type', discount);
+        return total;
+      }
+    }
+  };
+
+  private getDiscountsLookup(discounts: readonly Discount[]): DiscountLookup {
     const article2Discount = new Map<number, Discount>();
     for (const discount of discounts) {
       article2Discount.set(discount.article_id, discount);
@@ -74,8 +84,15 @@ export class BillingComputer {
       article2Price.set(article.id, article.price);
     }
 
-    return (articleId: number): number | undefined => {
-      return article2Price.get(articleId);
+    return (articleId: number): number => {
+      const articlePrice = article2Price.get(articleId);
+      // defensive programming is always a good thing
+      assert.ok(
+        typeof articlePrice === 'number' && !Number.isNaN(articlePrice) && articlePrice >= 0,
+        `article #${articleId} is either not found in articles database or has wrong price data format`
+      );
+
+      return articlePrice;
     };
   }
 }
