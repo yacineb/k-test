@@ -6,6 +6,8 @@ import { DeliveryFee } from './DeliveryFree.entity';
 import { Discount, DiscountType } from './Discount.entity';
 
 type DiscountLookup = (articleid: number) => Discount | undefined;
+type ArticlePriceLookup = (articleId: number) => number;
+
 /**
  * Computes total price for each cart
  */
@@ -21,24 +23,12 @@ export class BillingComputer {
     const discountsLookup = this.getDiscountsLookup(discounts);
     const articlesLookup = this.getArticlesLookup(articles);
 
-    return carts.map((cart) => {
-      let total = 0;
-
-      for (const item of cart.items) {
-        const articlePrice = articlesLookup(item.article_id);
-        const discount = discountsLookup(item.article_id);
-        total += this.applyDiscount(articlePrice, discount) * item.quantity;
-      }
-
-      return {
-        id: cart.id,
-        total: this.applyDeliveryFee(total, delivery_fee),
-      };
-    });
+    return carts.map((cart) => this.unitaryCompute(cart, articlesLookup, discountsLookup, delivery_fee));
   }
 
   /**
    * Get the final price with the delivery fees applied
+   * (Performance note : o(n) lookup on delivery fees is ok as it doe have low cardinality comparing to product)
    * @param totalNet
    * @param deliveryFees
    */
@@ -66,6 +56,32 @@ export class BillingComputer {
       }
     }
   };
+
+  /**
+   * Computes billing for a cart item
+   */
+  public unitaryCompute(
+    cart: Cart,
+    articlesLookup: ArticlePriceLookup,
+    discountsLookup: DiscountLookup,
+    delivery_fee: readonly DeliveryFee[]
+  ) {
+    let total = 0;
+
+    for (const item of cart.items) {
+      const articlePrice = articlesLookup(item.article_id);
+      const discount = discountsLookup(item.article_id);
+
+      // discounts apply by product
+      total += this.applyDiscount(articlePrice, discount) * item.quantity;
+    }
+
+    return {
+      id: cart.id,
+      // delivery fee applies on the whole transaction
+      total: this.applyDeliveryFee(total, delivery_fee),
+    };
+  }
 
   private getDiscountsLookup(discounts: readonly Discount[]): DiscountLookup {
     const article2Discount = new Map<number, Discount>();
