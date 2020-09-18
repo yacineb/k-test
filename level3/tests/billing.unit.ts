@@ -1,4 +1,5 @@
 import { BillingComputer } from '../src/shopping/BillingComputer';
+import { DiscountType } from '../src/shopping/Discount.entity';
 
 describe('BillingComputer', () => {
   const testCases = [
@@ -32,10 +33,18 @@ describe('BillingComputer', () => {
       ],
       fees: [],
 
+      discounts: [
+        {
+          article_id: 1,
+          value: 5,
+          type: DiscountType.amount,
+        },
+      ],
+
       expected: [
         {
           id: 1,
-          total: 70,
+          total: 65,
         },
       ],
     },
@@ -65,12 +74,20 @@ describe('BillingComputer', () => {
           total: 0,
         },
       ],
+
+      discounts: [
+        {
+          article_id: 1,
+          value: 10,
+          type: DiscountType.amount,
+        },
+      ],
     },
   ];
 
-  testCases.forEach(({ articles, carts, fees, expected }, index) => {
+  testCases.forEach(({ articles, carts, fees, expected, discounts }, index) => {
     it(`test compute case #${index}`, () => {
-      const result = new BillingComputer().compute(articles, carts, fees);
+      const result = new BillingComputer().compute(articles, carts, fees, discounts);
       expect(result).toEqual(expected);
     });
   });
