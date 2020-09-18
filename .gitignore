@@ -10,7 +10,7 @@ yarn-error.log
 
 # Specific
 #
-**/output.json/**
+output.json
 
 
 # compiler output
