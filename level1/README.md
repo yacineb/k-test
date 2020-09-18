@@ -14,7 +14,3 @@ INSTRUCTIONS :
 
 -   `node index.js` should generate a new file `output.json`
 -   `output.json` must be equal to `expected_output.json`
-
-## Notes
-
--   Minimum required version is Node 10, older versions are obsolete and no longer maintained.
