@@ -11,3 +11,7 @@ yarn-error.log
 # Specific
 #
 output.json
+
+
+# compiler output
+**/dist/**
